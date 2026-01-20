@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Cache west modules
         uses: actions/cache@v4
         env:
@@ -27,20 +28,23 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
       - name: West Init
         run: west init -l config
+
       - name: West Update
         run: west update
+
       - name: West Zephyr export
         run: west zephyr-export
-      
+
       # Build del lado Izquierdo (Left)
       - name: West Build (Sofle Left)
         run: west build -s zmk/app -b nice_nano -- -DSHIELD=sofle_left -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
-      - name: Sofle Left Kconfig file
-        run: cat build/zephyr/.config | grep -v "^#" | grep -v "^$"
+
       - name: Rename zmk.uf2 (Left)
         run: cp build/zephyr/zmk.uf2 sofle_left.uf2
+
       - name: Archive (Sofle Left)
         uses: actions/upload-artifact@v4
         with:
@@ -48,4 +52,14 @@ jobs:
           path: sofle_left.uf2
 
       # Build del lado Derecho (Right)
-      -
+      - name: West Build (Sofle Right)
+        run: west build --pristine -s zmk/app -b nice_nano -- -DSHIELD=sofle_right -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+
+      - name: Rename zmk.uf2 (Right)
+        run: cp build/zephyr/zmk.uf2 sofle_right.uf2
+
+      - name: Archive (Sofle Right)
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-right
+          path: sofle_right.uf2
